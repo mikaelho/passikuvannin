@@ -1,0 +1,144 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+		Remove this if you use the .htaccess -->
+		
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+		<title>Passikuvannin</title>
+		<meta name="description" content="Oikein asemoidun ja oikean kokoisen passikuvan tuottaminen Poliisin lupahallinnon kuvapalvelinta varten" />
+		<meta name="author" content="Mikael Honkala" />
+		<link rel="stylesheet" href="styles.css" type="text/css" />
+		<script src="jquery-1.11.0.min.js"></script>
+		<script src="e-smart-zoom-jquery.js"></script>
+		<!--<script src="drawImageFix.js"></script>-->
+		
+<script type="text/javascript">
+
+$(document).ready(function(){
+	$('#imageSelect').on('change', imageSelected);
+});
+
+function imageSelected(event) {
+	files = event.target.files;
+	var image = files[0];
+	var $z = $("#imageFullScreen");
+	$z.attr("src", window.URL.createObjectURL(image));
+	$("#selectImage").css("display", "none");
+	$z.smartZoom({'containerClass':'zoomableContainer', 'maxScale': 10});
+}
+
+function finalize(event) {
+	//$("#d").html("finalize");
+	if (fileCheck()) return;
+	var $div = $("#imgContainer");
+	var $z = $("#imageFullScreen");
+	var cr = $z.smartZoom("getCurrentRect");
+	var image = $z[0];
+	var scale = cr.width/$z.width();
+
+	var vx = (0 - cr.x) / scale;
+	var vy = (0 - cr.y) / scale;
+	var vw = $div.width() / scale;
+	var vh = $div.height() / scale;
+	var canvas = document.getElementById("copyCanvas");
+	var context = canvas.getContext('2d');
+	//drawImageIOSFix(context, image, vx, vy, vw, vh, 0, 0, 500, 653);
+	context.drawImage(image, vx, vy, vw, vh, 0, 0, 500, 653);
+	var dataUrl = canvas.toDataURL("image/jpeg", 0.98);
+	$("#resultImage").attr("src", dataUrl);
+	$("#resultImage").css("display", "initial");
+	$("#lock").css("display", "none");
+	$("#release").css("display", "initial");
+	$(".editOnly").css("visibility", "hidden");
+}
+
+function release(event) {
+	$("#resultImage").css("display", "none");
+	$("#lock").css("display", "initial");
+	$("#release").css("display", "none");
+	$(".editOnly").css("visibility", "visible");
+}
+
+function zoomAction(zoomIn) {
+	if (fileCheck()) return;
+	var zoomFactor = zoomIn? 0.4: -0.4;
+	$('#imageFullScreen').smartZoom('zoom', zoomFactor);
+}
+
+function fileCheck() {
+	if ($("#imageFullScreen").data('smartZoomData')) {
+		return false;
+	} else {
+		$('#imageSelect').click();
+		return true;
+	}
+}
+</script>
+</head>
+
+<body>
+<h1 class="bold" style="text-align:center">PASSIKUVANNIN</h1>
+<div class="styleContainer">
+<div class="passportPhoto" id="imgContainer" style="position: relative">
+	<img id="imageFullScreen" />
+	<img id="guidelines" src="apuviivat.png" style="position:absolute; top: 0px; left: 0px; pointer-events: none" />
+	<img id="resultImage" style="position:absolute; top: 0px; left: 0px; display:none" />
+	<img id="selectImage" style="position:absolute; top: 0px; left: 0px" src="camera.jpg" onclick="$('#imageSelect').click();" />
+</div>
+</div>
+<br />
+<div class="actionContainer">
+<button class="action editOnly" onclick="zoomAction(true)"><img src="glyphicons_190_circle_plus.png"  /> Lähemmäs</button>
+<button id="lock" class="action" onclick="finalize(event)"><img src="glyphicons_203_lock.png"  /> Lukitse</button>
+<button id="release" class="action" onclick="release(event)" style="display:none" ><img src="glyphicons_204_unlock.png"  /> Muokkaa</button>
+<button class="action editOnly" onclick="zoomAction(false)"><img src="glyphicons_191_circle_minus.png"  /> Kauemmas</button>
+<button class="action" onclick="if (!fileCheck()) location.reload()"><img src="glyphicons_085_repeat.png"  /> Alusta</button>
+</div>
+<div class="instructions">
+<p>
+<span class="bold">OHJEET</span>
+<p>Tämän sivun avulla voit nopeasti muokata valitsemastasi kuvasta oikean kokoisen ja oikein sijoitellun sähköisen passikuvan ladattavaksi Poliisin lupahallinnon valokuvapalvelimelle.</p>
+<ol>
+<li>Tutustu lupahallinnon sähköisen passikuvan ohjeisiin</li>
+<li>Valitse kuva laitteeltasi klikkaamalla yllä olevaa kameran kuvaa</li>
+<li>Sommittele apuviivojen avulla (katso tarvittaessa tarkemmat ohjeet alla)</li>
+<li>Lukitse kuva klikkaamalla lukon kuvaa</li>
+<li>Tallenna kuva laitteellesi klikkaamalla sitä hiiren oikealla näppäimellä (tietokoneet) tai pitkällä painalluksella (mobiililaitteet)</li>
+<li>Lataa kuva lupahallinnon valokuvapalvelimelle</li>
+</ol>
+</p>
+<p>
+<span class="bold">KUVAN MUOKKAAMINEN</span>
+<p>
+Ruudulla näkyvien zoomauspainikkeiden lisäksi kuvaa voi muokata:
+<ul>
+<li>Tietokoneella siirtämällä kuvaa hiiren vasen painike alhaalla sekä zoomaamalla hiiren rullalla tai tuplaklikkaamalla
+</li>
+<li>Kosketusnäytöllisellä laitteella siirtämällä kuvaa sormella, normaaleilla nipistys- ja levityseleillä sekä tuplanapautuksella</li>
+</ul>
+</p>
+<span class="bold">MUUTA</span>
+<p>
+<ol>
+<li>Sivu ei tue kuvan pyöritystä, joten jos kuva on otettu muuten kuin kameran oletusasennossa (yleensä vaaka-asento), käännä se oikein päin jollain muulla ohjelmalla ennen asemointia tällä sivulla.</li>
+<li>Sivu toimii parhaiten vaakakuvilla, joiden oletetaan olevan paljon suurempia kuin lopputuloksena syntyvä passikuva, jolloin koko passikuvan ala täyttyy kasvojen ollessa oikein keskelle kuvaa sommiteltuna.</li>
+<li>Sivun perustoiminnallisuus on testattu:
+	<ul>
+		<li>iPhone ja iPad: Safari, Chrome</li>
+		<li>Mac OS X: Safari, Chrome</li>
+		<li>Windows: Firefox, Chrome</li>
+	</ul>
+</li>
+</ol>
+</p>
+
+</div>
+<input id="imageSelect" type="file" onChange="imageSelected(event)" style="display:none" />
+<canvas id="copyCanvas" width="500px" height="653px" style="background: #333; display:none">
+</canvas>
+<div id="d"></div>
+</body>
+</html>
